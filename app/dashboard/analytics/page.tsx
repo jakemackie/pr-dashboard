@@ -1,4 +1,7 @@
+import { authOptions } from "@/auth";
+import { DataFetchStatus } from "@/components/dashboard/data-fetch-status";
 import { SalesChart } from "@/components/dashboard/sales-chart";
+import { getDashboardDataState } from "@/lib/dashboard-data";
 import {
   Card,
   CardContent,
@@ -6,10 +9,51 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { getServerSession } from "next-auth";
+import { Suspense } from "react";
+
+import AnalyticsLoading from "./loading";
 
 export default function AnalyticsPage() {
   return (
+    <Suspense fallback={<AnalyticsLoading />}>
+      <AnalyticsContent />
+    </Suspense>
+  );
+}
+
+async function AnalyticsContent() {
+  const session = await getServerSession(authOptions);
+  const state = await getDashboardDataState(session?.accessToken);
+  const analytics = state.status === "ok" ? state.analytics : null;
+  const themes = analytics?.analyticsByRange.month.themes ?? [];
+  const comments = analytics?.analyticsByRange.month.comments ?? [];
+  const prs = analytics?.analyticsByRange.month.prsReviewed ?? [];
+
+  const topThemeIndex = themes.length > 0 ? themes.indexOf(Math.max(...themes)) : -1;
+  const topCommentIndex = comments.length > 0 ? comments.indexOf(Math.max(...comments)) : -1;
+  const peakThroughput = prs.length > 0 ? prs.indexOf(Math.max(...prs)) + 1 : 0;
+
+  const themeLabels = [
+    "Bug fix",
+    "Feature",
+    "Refactor",
+    "Testing",
+    "Documentation",
+    "CI / Chore",
+  ];
+
+  const commentLabels = [
+    "No discussion",
+    "Light discussion",
+    "Active discussion",
+    "Heavy discussion",
+  ];
+
+  return (
     <div className="grid gap-4">
+      {state.status !== "ok" ? <DataFetchStatus message={state.message} /> : null}
+
       <Card>
         <CardHeader>
           <CardTitle>Deep Analytics</CardTitle>
@@ -20,20 +64,26 @@ export default function AnalyticsPage() {
         <CardContent className="grid gap-4 md:grid-cols-3">
           <div>
             <p className="text-xs text-muted-foreground">Most common theme</p>
-            <p className="text-lg font-semibold">Testing gaps</p>
+            <p className="text-lg font-semibold">
+              {topThemeIndex >= 0 ? themeLabels[topThemeIndex] : "No data"}
+            </p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Most common comment type</p>
-            <p className="text-lg font-semibold">Style suggestions</p>
+            <p className="text-lg font-semibold">
+              {topCommentIndex >= 0 ? commentLabels[topCommentIndex] : "No data"}
+            </p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Peak throughput period</p>
-            <p className="text-lg font-semibold">Week 4</p>
+            <p className="text-lg font-semibold">
+              {peakThroughput > 0 ? `Bucket ${peakThroughput}` : "No data"}
+            </p>
           </div>
         </CardContent>
       </Card>
 
-      <SalesChart />
+      <SalesChart analytics={analytics} />
     </div>
   );
 }

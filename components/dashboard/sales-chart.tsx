@@ -25,9 +25,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@/components/ui/toggle-group";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { GitHubAnalyticsPayload, RangeAnalytics, RangeKey } from "@/lib/github-analytics";
 
 ChartJS.register(
   CategoryScale,
@@ -42,60 +46,64 @@ ChartJS.register(
 );
 
 const themeLabels = [
-  "Testing gaps",
-  "Type safety",
-  "Performance",
-  "Docs",
-  "Security",
-  "UX",
+  "Bug fix",
+  "Feature",
+  "Refactor",
+  "Testing",
+  "Documentation",
+  "CI / Chore",
 ];
 
 const commentLabels = [
-  "Style suggestions",
-  "Logic concerns",
-  "Nit picks",
-  "Approval notes",
-  "Question threads",
+  "No discussion",
+  "Light discussion",
+  "Active discussion",
+  "Heavy discussion",
 ];
 
-type RangeKey = "7d" | "30d" | "90d";
-
 const rangeLabels: Record<RangeKey, string> = {
-  "7d": "Last 7 days",
-  "30d": "Last 30 days",
-  "90d": "Last 90 days",
+  week: "Last week",
+  month: "Last month",
+  quarter: "Last 3 months",
+  year: "Last year",
+  all: "All time",
 };
 
-const analyticsByRange: Record<
-  RangeKey,
-  {
-    themes: number[];
-    comments: number[];
-    trendLabels: string[];
-    prsReviewed: number[];
-    commentThreads: number[];
-  }
-> = {
-  "7d": {
-    themes: [11, 9, 7, 4, 3, 2],
-    comments: [9, 6, 5, 4, 2],
+const emptyAnalyticsByRange: Record<RangeKey, RangeAnalytics> = {
+  week: {
+    themes: [0, 0, 0, 0, 0, 0],
+    comments: [0, 0, 0, 0],
     trendLabels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-    prsReviewed: [4, 5, 4, 6, 7, 3, 5],
-    commentThreads: [9, 11, 10, 14, 16, 8, 12],
+    prsReviewed: [0, 0, 0, 0, 0, 0, 0],
+    commentThreads: [0, 0, 0, 0, 0, 0, 0],
   },
-  "30d": {
-    themes: [46, 38, 29, 24, 19, 13],
-    comments: [34, 26, 15, 18, 7],
-    trendLabels: ["W1", "W2", "W3", "W4"],
-    prsReviewed: [18, 21, 24, 26],
-    commentThreads: [45, 50, 54, 60],
+  month: {
+    themes: [0, 0, 0, 0, 0, 0],
+    comments: [0, 0, 0, 0],
+    trendLabels: ["W1", "W2", "W3", "W4", "W5"],
+    prsReviewed: [0, 0, 0, 0, 0],
+    commentThreads: [0, 0, 0, 0, 0],
   },
-  "90d": {
-    themes: [121, 98, 86, 64, 49, 37],
-    comments: [89, 71, 43, 52, 24],
+  quarter: {
+    themes: [0, 0, 0, 0, 0, 0],
+    comments: [0, 0, 0, 0],
     trendLabels: ["M1", "M2", "M3"],
-    prsReviewed: [78, 86, 95],
-    commentThreads: [194, 221, 247],
+    prsReviewed: [0, 0, 0],
+    commentThreads: [0, 0, 0],
+  },
+  year: {
+    themes: [0, 0, 0, 0, 0, 0],
+    comments: [0, 0, 0, 0],
+    trendLabels: ["Q1", "Q2", "Q3", "Q4"],
+    prsReviewed: [0, 0, 0, 0],
+    commentThreads: [0, 0, 0, 0],
+  },
+  all: {
+    themes: [0, 0, 0, 0, 0, 0],
+    comments: [0, 0, 0, 0],
+    trendLabels: ["Y-4", "Y-3", "Y-2", "Y-1", "Y"],
+    prsReviewed: [0, 0, 0, 0, 0],
+    commentThreads: [0, 0, 0, 0, 0],
   },
 };
 
@@ -230,10 +238,26 @@ const lineOptions = (range: RangeKey): ChartOptions<"line"> => ({
   },
 });
 
-export function SalesChart() {
-  const [range, setRange] = useState<RangeKey>("30d");
+type SalesChartProps = {
+  analytics?: GitHubAnalyticsPayload | null;
+  range?: RangeKey;
+  onRangeChange?: (range: RangeKey) => void;
+};
 
-  const selected = analyticsByRange[range];
+export function SalesChart({ analytics, range, onRangeChange }: SalesChartProps) {
+  const [internalRange, setInternalRange] = useState<RangeKey>("month");
+  const selectedRange = range ?? internalRange;
+  const setRange = (nextRange: RangeKey) => {
+    if (onRangeChange) {
+      onRangeChange(nextRange);
+      return;
+    }
+
+    setInternalRange(nextRange);
+  };
+
+  const effectiveAnalytics = analytics?.analyticsByRange ?? emptyAnalyticsByRange;
+  const selected = effectiveAnalytics[selectedRange];
 
   const themeData = useMemo(
     () => ({
@@ -314,32 +338,32 @@ export function SalesChart() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Badge variant="secondary">Mock Data</Badge>
+          <Badge variant="secondary">
+            {analytics ? "GitHub Live Data" : "No Live Data"}
+          </Badge>
           <p className="text-sm text-muted-foreground">
-            Range-adjusted metrics for recurring PR themes and review comment behavior.
+            {analytics
+              ? `Based on ${analytics.totalOpenPrs} open PRs across ${analytics.activeRepositories} repositories.`
+              : "Live GitHub data unavailable. Charts are shown with empty values."}
           </p>
         </div>
-        <ToggleGroup
-          type="single"
-          value={range}
+        <Select
+          value={selectedRange}
           onValueChange={(value) => {
-            if (value) {
-              setRange(value as RangeKey);
-            }
+            setRange(value as RangeKey);
           }}
-          variant="outline"
-          className="rounded-lg border bg-card p-1"
         >
-          <ToggleGroupItem value="7d" className="h-8 px-3 text-xs">
-            Last 7
-          </ToggleGroupItem>
-          <ToggleGroupItem value="30d" className="h-8 px-3 text-xs">
-            Last 30
-          </ToggleGroupItem>
-          <ToggleGroupItem value="90d" className="h-8 px-3 text-xs">
-            Last 90
-          </ToggleGroupItem>
-        </ToggleGroup>
+          <SelectTrigger className="w-[170px]">
+            <SelectValue placeholder="Select range" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="week">Last week</SelectItem>
+            <SelectItem value="month">Last month</SelectItem>
+            <SelectItem value="quarter">Last 3 months</SelectItem>
+            <SelectItem value="year">Last year</SelectItem>
+            <SelectItem value="all">All time</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-5">
@@ -349,7 +373,7 @@ export function SalesChart() {
             <CardDescription>Most repeated PR discussion themes</CardDescription>
           </CardHeader>
           <CardContent className="h-[280px]">
-            <Bar data={themeData} options={barOptions(range)} />
+            <Bar data={themeData} options={barOptions(selectedRange)} />
           </CardContent>
         </Card>
 
@@ -369,7 +393,7 @@ export function SalesChart() {
             <CardDescription>PR reviews and thread volume over time</CardDescription>
           </CardHeader>
           <CardContent className="h-[280px]">
-            <Line data={reviewVolumeData} options={lineOptions(range)} />
+            <Line data={reviewVolumeData} options={lineOptions(selectedRange)} />
           </CardContent>
         </Card>
       </div>

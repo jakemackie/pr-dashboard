@@ -1,7 +1,5 @@
 import { authOptions } from "@/auth";
-import { AppSidebar } from "@/components/dashboard/app-sidebar";
-import { DashboardHeader } from "@/components/dashboard/dashboard-header";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
@@ -26,12 +24,8 @@ export default async function DashboardLayout({
     .toUpperCase();
 
   return (
-    <SidebarProvider>
-      <AppSidebar displayName={displayName} avatarUrl={avatarUrl} initials={initials} />
-      <SidebarInset>
-        <DashboardHeader />
-        <div className="flex flex-1 flex-col gap-4 p-4">{children}</div>
-      </SidebarInset>
-    </SidebarProvider>
+    <DashboardShell displayName={displayName} avatarUrl={avatarUrl} initials={initials}>
+      {children}
+    </DashboardShell>
   );
 }

@@ -1,3 +1,6 @@
+import { authOptions } from "@/auth";
+import { DataFetchStatus } from "@/components/dashboard/data-fetch-status";
+import { getDashboardDataState } from "@/lib/dashboard-data";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -6,43 +9,46 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { getServerSession } from "next-auth";
+import { Suspense } from "react";
 
-const commentBuckets = [
-  { type: "Action required", count: 27, trend: "+4 this week" },
-  { type: "Clarification requested", count: 19, trend: "+2 this week" },
-  { type: "Approval notes", count: 31, trend: "-3 this week" },
-];
+import CommentsLoading from "./loading";
 
-const unresolvedThreads = [
-  {
-    repo: "api-gateway",
-    pr: "#418 Improve token verification flow",
-    age: "2d",
-  },
-  {
-    repo: "web-client",
-    pr: "#772 Refactor pagination state",
-    age: "1d",
-  },
-  {
-    repo: "jobs-worker",
-    pr: "#203 Batch processing retry tuning",
-    age: "3d",
-  },
+const commentBucketLabels = [
+  "No discussion",
+  "Light discussion",
+  "Active discussion",
+  "Heavy discussion",
 ];
 
 export default function CommentsPage() {
   return (
+    <Suspense fallback={<CommentsLoading />}>
+      <CommentsContent />
+    </Suspense>
+  );
+}
+
+async function CommentsContent() {
+  const session = await getServerSession(authOptions);
+  const state = await getDashboardDataState(session?.accessToken);
+  const buckets = state.status === "ok" ? state.analytics.commentSummary.buckets : [0, 0, 0, 0];
+  const unresolvedThreads =
+    state.status === "ok" ? state.analytics.commentSummary.unresolvedThreads : [];
+
+  return (
     <div className="grid gap-4">
+      {state.status !== "ok" ? <DataFetchStatus message={state.message} /> : null}
+
       <div className="grid gap-4 md:grid-cols-3">
-        {commentBuckets.map((bucket) => (
-          <Card key={bucket.type}>
+        {commentBucketLabels.map((label, index) => (
+          <Card key={label}>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">{bucket.type}</CardTitle>
+              <CardTitle className="text-base">{label}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-semibold">{bucket.count}</p>
-              <p className="text-xs text-muted-foreground">{bucket.trend}</p>
+              <p className="text-2xl font-semibold">{buckets[index] ?? 0}</p>
+              <p className="text-xs text-muted-foreground">Open PR comment bucket</p>
             </CardContent>
           </Card>
         ))}
@@ -56,16 +62,27 @@ export default function CommentsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
+          {unresolvedThreads.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No active discussion threads found.</p>
+          ) : null}
+
           {unresolvedThreads.map((thread) => (
             <div
-              key={thread.pr}
+              key={`${thread.repo}-${thread.url}`}
               className="flex items-center justify-between rounded-md border p-3"
             >
               <div>
-                <p className="text-sm font-medium">{thread.pr}</p>
+                <a
+                  href={thread.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-medium underline-offset-4 hover:underline"
+                >
+                  {thread.title}
+                </a>
                 <p className="text-xs text-muted-foreground">{thread.repo}</p>
               </div>
-              <Badge variant="outline">Open {thread.age}</Badge>
+              <Badge variant="outline">Open {thread.ageDays}d</Badge>
             </div>
           ))}
         </CardContent>

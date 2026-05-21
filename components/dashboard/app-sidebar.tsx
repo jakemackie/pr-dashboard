@@ -70,10 +70,19 @@ type AppSidebarProps = {
   displayName: string;
   avatarUrl?: string;
   initials: string;
+  activeHref?: string | null;
+  onNavigateStart?: (href: string) => void;
 };
 
-export function AppSidebar({ displayName, avatarUrl, initials }: AppSidebarProps) {
+export function AppSidebar({
+  displayName,
+  avatarUrl,
+  initials,
+  activeHref,
+  onNavigateStart,
+}: AppSidebarProps) {
   const pathname = usePathname();
+  const currentHref = activeHref ?? pathname;
 
   return (
     <Sidebar collapsible="icon" variant="inset">
@@ -81,7 +90,15 @@ export function AppSidebar({ displayName, avatarUrl, initials }: AppSidebarProps
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link href="/dashboard">
+              <Link
+                href="/dashboard"
+                prefetch={false}
+                onClick={() => {
+                  if (pathname !== "/dashboard") {
+                    onNavigateStart?.("/dashboard");
+                  }
+                }}
+              >
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                   <BarChart3 className="size-4" />
                 </div>
@@ -104,10 +121,18 @@ export function AppSidebar({ displayName, avatarUrl, initials }: AppSidebarProps
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    isActive={pathname === item.href}
+                    isActive={currentHref === item.href}
                     tooltip={item.title}
                   >
-                    <Link href={item.href}>
+                    <Link
+                      href={item.href}
+                      prefetch={false}
+                      onClick={() => {
+                        if (pathname !== item.href) {
+                          onNavigateStart?.(item.href);
+                        }
+                      }}
+                    >
                       <item.icon />
                       <span>{item.title}</span>
                     </Link>
