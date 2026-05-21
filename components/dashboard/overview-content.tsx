@@ -44,6 +44,43 @@ export function OverviewContent({ analytics }: OverviewContentProps) {
 
   return (
     <>
+      <div className="mb-4 grid gap-4 xl:grid-cols-5">
+        <div className="rounded-lg border bg-card p-4 shadow xl:col-span-2">
+          <h2 className="mb-1 text-lg font-semibold">DevOps Intelligence Suite</h2>
+          <p className="text-sm text-muted-foreground">
+            This dashboard integrates GitHub and ClickUp to automate code quality feedback, AI test case generation, and real-time task sync.<br />
+            <span className="font-medium">Stakeholders:</span> Developers (automated PR feedback), Lead Developers (technical debt insights), Project Managers (ClickUp sync), QA (AI-generated tests).
+          </p>
+        </div>
+        <div className="rounded-lg border bg-card p-4 shadow flex flex-col justify-between">
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">Developers</p>
+            <p className="text-base font-semibold">{analytics ? analytics.totalOpenPrs : "-"} Automated PR Feedback</p>
+          </div>
+          <span className="text-xs text-muted-foreground">Lint, review, and AI suggestions</span>
+        </div>
+        <div className="rounded-lg border bg-card p-4 shadow flex flex-col justify-between">
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">Lead Developers</p>
+            <p className="text-base font-semibold">{analytics ? analytics.analyticsByRange?.month?.duplicateComments ?? "-" : "-"} PRs Summarized</p>
+          </div>
+          <span className="text-xs text-muted-foreground">Technical debt & duplicate comments</span>
+        </div>
+        <div className="rounded-lg border bg-card p-4 shadow flex flex-col justify-between">
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">Project Managers</p>
+            <p className="text-base font-semibold">{analytics ? analytics.syncedClickUpTasks ?? "-" : "-"} ClickUp Tasks Synced</p>
+          </div>
+          <span className="text-xs text-muted-foreground">Real-time GitHub–ClickUp sync</span>
+        </div>
+        <div className="rounded-lg border bg-card p-4 shadow flex flex-col justify-between">
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">QA</p>
+            <p className="text-base font-semibold">{analytics ? analytics.analyticsByRange?.month?.aiTestCases ?? "-" : "-"} AI Test Cases</p>
+          </div>
+          <span className="text-xs text-muted-foreground">Generated for new PRs</span>
+        </div>
+      </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card>
           <CardContent className="space-y-1 p-4">

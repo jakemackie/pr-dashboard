@@ -29,6 +29,8 @@ async function AnalyticsContent() {
   const themes = analytics?.analyticsByRange.month.themes ?? [];
   const comments = analytics?.analyticsByRange.month.comments ?? [];
   const prs = analytics?.analyticsByRange.month.prsReviewed ?? [];
+  const aiTestCases = analytics?.analyticsByRange.month.aiTestCases ?? 0;
+  const clickUpSyncs = analytics?.syncedClickUpTasks ?? 0;
 
   const topThemeIndex = themes.length > 0 ? themes.indexOf(Math.max(...themes)) : -1;
   const topCommentIndex = comments.length > 0 ? comments.indexOf(Math.max(...comments)) : -1;
@@ -54,34 +56,42 @@ async function AnalyticsContent() {
     <div className="grid gap-4">
       {state.status !== "ok" ? <DataFetchStatus message={state.message} /> : null}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Deep Analytics</CardTitle>
-          <CardDescription>
-            Theme recurrence, comment composition, and review throughput trends.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-3">
-          <div>
-            <p className="text-xs text-muted-foreground">Most common theme</p>
-            <p className="text-lg font-semibold">
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle>Top PR Theme</CardTitle>
+            <CardDescription>Most frequent review topic this month</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <span className="text-lg font-semibold">
               {topThemeIndex >= 0 ? themeLabels[topThemeIndex] : "No data"}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Most common comment type</p>
-            <p className="text-lg font-semibold">
+            </span>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Top Comment Type</CardTitle>
+            <CardDescription>Most common review comment style</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <span className="text-lg font-semibold">
               {topCommentIndex >= 0 ? commentLabels[topCommentIndex] : "No data"}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Peak throughput period</p>
-            <p className="text-lg font-semibold">
-              {peakThroughput > 0 ? `Bucket ${peakThroughput}` : "No data"}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+            </span>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Integration Activity</CardTitle>
+            <CardDescription>ClickUp syncs & AI test cases (month)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-1">
+              <span className="text-base font-semibold">{clickUpSyncs} ClickUp Tasks</span>
+              <span className="text-base font-semibold">{aiTestCases} AI Test Cases</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <SalesChart analytics={analytics} />
     </div>

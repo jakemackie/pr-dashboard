@@ -45,19 +45,19 @@ const navItems = [
     icon: LayoutDashboard,
   },
   {
-    title: "Repositories",
-    href: "/dashboard/repositories",
-    icon: FolderKanban,
-  },
-  {
-    title: "Analytics",
+    title: "PR Themes",
     href: "/dashboard/analytics",
     icon: BarChart3,
   },
   {
-    title: "Review Comments",
+    title: "AI Test Cases",
     href: "/dashboard/comments",
     icon: MessageSquareText,
+  },
+  {
+    title: "ClickUp Sync",
+    href: "/dashboard/repositories",
+    icon: FolderKanban,
   },
   {
     title: "Settings",
@@ -103,8 +103,8 @@ export function AppSidebar({
                   <BarChart3 className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">PR Intelligence</span>
-                  <span className="truncate text-xs">Code Review Analytics</span>
+                  <span className="truncate font-semibold">DevOps Intelligence</span>
+                  <span className="truncate text-xs">SDLC Automation Suite</span>
                 </div>
               </Link>
             </SidebarMenuButton>

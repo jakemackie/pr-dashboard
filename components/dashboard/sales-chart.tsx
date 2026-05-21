@@ -369,8 +369,12 @@ export function SalesChart({ analytics, range, onRangeChange }: SalesChartProps)
       <div className="grid gap-6 lg:grid-cols-5">
         <Card className="lg:col-span-3">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Theme Frequency</CardTitle>
-            <CardDescription>Most repeated PR discussion themes</CardDescription>
+            <CardTitle className="text-base">Recurring PR Themes</CardTitle>
+            <CardDescription>
+              <span>Frequency of review topics (e.g., bug, feature, refactor) &nbsp;
+                <span title="Shows which PR themes are most discussed, helping identify technical debt and focus areas." className="cursor-help text-muted-foreground">[?]</span>
+              </span>
+            </CardDescription>
           </CardHeader>
           <CardContent className="h-[280px]">
             <Bar data={themeData} options={barOptions(selectedRange)} />
@@ -379,8 +383,12 @@ export function SalesChart({ analytics, range, onRangeChange }: SalesChartProps)
 
         <Card className="lg:col-span-2">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Comment Mix</CardTitle>
-            <CardDescription>Breakdown by review comment category</CardDescription>
+            <CardTitle className="text-base">Comment Type Breakdown</CardTitle>
+            <CardDescription>
+              <span>Distribution of review comment types &nbsp;
+                <span title="Breaks down comments by discussion depth, surfacing collaboration and QA focus." className="cursor-help text-muted-foreground">[?]</span>
+              </span>
+            </CardDescription>
           </CardHeader>
           <CardContent className="h-[280px]">
             <Doughnut data={commentTypeData} options={doughnutOptions} />
@@ -389,8 +397,12 @@ export function SalesChart({ analytics, range, onRangeChange }: SalesChartProps)
 
         <Card className="lg:col-span-5">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Trend</CardTitle>
-            <CardDescription>PR reviews and thread volume over time</CardDescription>
+            <CardTitle className="text-base">Review & Integration Trend</CardTitle>
+            <CardDescription>
+              <span>PR reviews, comment threads, and integration activity over time &nbsp;
+                <span title="Tracks review throughput and integration events (e.g., ClickUp sync, AI test cases) for SDLC health." className="cursor-help text-muted-foreground">[?]</span>
+              </span>
+            </CardDescription>
           </CardHeader>
           <CardContent className="h-[280px]">
             <Line data={reviewVolumeData} options={lineOptions(selectedRange)} />

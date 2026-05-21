@@ -8,24 +8,28 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 
 const sectionMeta: Record<string, { title: string; description: string }> = {
   "/dashboard": {
-    title: "Overview",
-    description: "PR review patterns, themes, and comment behavior.",
-  },
-  "/dashboard/repositories": {
-    title: "Repositories",
-    description: "Risk and review hotspots across active code repositories.",
+    title: "DevOps Intelligence Layer",
+    description:
+      "Integrated SDLC automation: PR analysis, AI test generation, and ClickUp sync.",
   },
   "/dashboard/analytics": {
-    title: "Analytics",
-    description: "Cross-team trends on recurring PR themes and review throughput.",
+    title: "PR Themes",
+    description:
+      "Visualize recurring pull request themes and review patterns for technical debt management.",
   },
   "/dashboard/comments": {
-    title: "Review Comments",
-    description: "Comment quality and unresolved thread tracking.",
+    title: "AI Test Cases",
+    description:
+      "AI-generated test scenarios and comment quality insights for QA and developers.",
+  },
+  "/dashboard/repositories": {
+    title: "ClickUp Sync",
+    description:
+      "Track real-time task and comment sync between GitHub and ClickUp for project managers.",
   },
   "/dashboard/settings": {
     title: "Settings",
-    description: "Dashboard preferences and GitHub integration controls.",
+    description: "Dashboard preferences and integration controls.",
   },
 };
 

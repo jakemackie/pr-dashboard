@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { getServerSession } from "next-auth";
 import { Suspense } from "react";
 
@@ -72,15 +73,15 @@ async function CommentsContent() {
               className="flex items-center justify-between rounded-md border p-3"
             >
               <div>
-                <a
-                  href={thread.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm font-medium underline-offset-4 hover:underline"
-                >
-                  {thread.title}
-                </a>
+                <p className="text-sm font-medium">{thread.title}</p>
                 <p className="text-xs text-muted-foreground">{thread.repo}</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <Button size="sm" variant="outline" asChild>
+                    <a href={thread.url} target="_blank" rel="noopener noreferrer">
+                      Open in GitHub
+                    </a>
+                  </Button>
+                </div>
               </div>
               <Badge variant="outline">Open {thread.ageDays}d</Badge>
             </div>
