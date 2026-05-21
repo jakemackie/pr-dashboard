@@ -45,6 +45,24 @@ export type RangeAnalytics = {
   trendLabels: string[];
   prsReviewed: number[];
   commentThreads: number[];
+  aiTestCases: number;
+};
+
+type ClickUpTag = {
+  name?: string;
+};
+
+type ClickUpTask = {
+  id: string;
+  parent?: string | null;
+  date_created?: string;
+  tags?: ClickUpTag[];
+  name?: string;
+};
+
+type ClickUpListTasksResponse = {
+  tasks?: ClickUpTask[];
+  last_page?: boolean;
 };
 
 export type GitHubAnalyticsPayload = {
@@ -52,6 +70,16 @@ export type GitHubAnalyticsPayload = {
   totalOpenPrs: number;
   totalActivePrs90d: number;
   activeRepositories: number;
+  syncedClickUpTasks: number;
+  clickUpSummary: {
+    configured: boolean;
+    listId: string | null;
+    listUrl: string | null;
+    totalTasks: number;
+    syncedTasks: number;
+    syncedTasksLast30Days: number;
+    aiWorkItemsLast30Days: number;
+  };
   analyticsByRange: Record<RangeKey, RangeAnalytics>;
   repositories: Array<{
     name: string;
@@ -277,11 +305,67 @@ function buildRangeAnalytics(items: IssueSearchItem[], range: RangeKey): RangeAn
     trendLabels,
     prsReviewed,
     commentThreads,
+    aiTestCases: 0,
   };
 }
 
+function hasClickUpTag(task: ClickUpTask, tagName: string) {
+  return (task.tags ?? []).some((tag) => tag.name?.toLowerCase() === tagName.toLowerCase());
+}
+
+function createdWithinDays(task: ClickUpTask, days: number) {
+  const createdMs = Number(task.date_created ?? 0);
+  if (!createdMs) {
+    return false;
+  }
+
+  const windowMs = days * 24 * 60 * 60 * 1000;
+  return Date.now() - createdMs <= windowMs;
+}
+
+async function getClickUpTasks(): Promise<{ listId: string | null; tasks: ClickUpTask[] }> {
+  const token = process.env.CLICKUP_API_TOKEN?.trim();
+  const listId = process.env.CLICKUP_LIST_ID?.trim() || "901522558612";
+
+  if (!token) {
+    return { listId: null, tasks: [] };
+  }
+
+  const tasks: ClickUpTask[] = [];
+  let page = 0;
+
+  while (page < 10) {
+    const response = await fetch(
+      `https://api.clickup.com/api/v2/list/${listId}/task?subtasks=true&include_closed=true&page=${page}`,
+      {
+        headers: {
+          Authorization: token,
+          Accept: "application/json",
+        },
+        cache: "no-store",
+      },
+    );
+
+    if (!response.ok) {
+      break;
+    }
+
+    const payload = (await response.json()) as ClickUpListTasksResponse;
+    const batch = payload.tasks ?? [];
+    tasks.push(...batch);
+
+    if (payload.last_page || batch.length === 0) {
+      break;
+    }
+
+    page += 1;
+  }
+
+  return { listId, tasks };
+}
+
 export async function getGitHubAnalytics(accessToken: string): Promise<GitHubAnalyticsPayload> {
-  const [user, orgs, openPrsResult, historyPrsResult] = await Promise.all([
+  const [user, orgs, openPrsResult, historyPrsResult, clickUpResult] = await Promise.all([
     githubFetch<UserResponse>("/user", accessToken),
     githubFetch<OrgResponse[]>("/user/orgs", accessToken),
     githubFetch<IssueSearchResponse>(
@@ -292,6 +376,7 @@ export async function getGitHubAnalytics(accessToken: string): Promise<GitHubAna
       "/search/issues?q=is:pr+author:@me&per_page=100&sort=updated&order=desc",
       accessToken,
     ),
+    getClickUpTasks(),
   ]);
 
   let commitItems: CommitSearchItem[] = [];
@@ -486,17 +571,63 @@ export async function getGitHubAnalytics(accessToken: string): Promise<GitHubAna
       { prs: 0, commits: 0 },
     );
 
+  const clickUpTasks = clickUpResult.tasks;
+  const syncedPrTasks = clickUpTasks.filter(
+    (task) => !task.parent && hasClickUpTag(task, "github-pr"),
+  );
+  const aiGroupedSubtasks = clickUpTasks.filter(
+    (task) => Boolean(task.parent) && hasClickUpTag(task, "ai-grouped-subtask"),
+  );
+
+  const aiCountsByRange: Record<RangeKey, number> = {
+    week: aiGroupedSubtasks.filter((task) => createdWithinDays(task, 7)).length,
+    month: aiGroupedSubtasks.filter((task) => createdWithinDays(task, 30)).length,
+    quarter: aiGroupedSubtasks.filter((task) => createdWithinDays(task, 90)).length,
+    year: aiGroupedSubtasks.filter((task) => createdWithinDays(task, 365)).length,
+    all: aiGroupedSubtasks.length,
+  };
+
+  const listUrl = clickUpResult.listId
+    ? process.env.CLICKUP_LIST_URL?.trim() ||
+      `https://app.clickup.com/9015216951/v/l/li/${clickUpResult.listId}`
+    : null;
+
   return {
     source: "github",
     totalOpenPrs: openItems.length,
     totalActivePrs90d: items90d.length,
     activeRepositories: repoMap.size,
+    syncedClickUpTasks: syncedPrTasks.length,
+    clickUpSummary: {
+      configured: Boolean(clickUpResult.listId),
+      listId: clickUpResult.listId,
+      listUrl,
+      totalTasks: clickUpTasks.length,
+      syncedTasks: syncedPrTasks.length,
+      syncedTasksLast30Days: syncedPrTasks.filter((task) => createdWithinDays(task, 30)).length,
+      aiWorkItemsLast30Days: aiCountsByRange.month,
+    },
     analyticsByRange: {
-      week: buildRangeAnalytics(historyItems, "week"),
-      month: buildRangeAnalytics(historyItems, "month"),
-      quarter: buildRangeAnalytics(historyItems, "quarter"),
-      year: buildRangeAnalytics(historyItems, "year"),
-      all: buildRangeAnalytics(historyItems, "all"),
+      week: {
+        ...buildRangeAnalytics(historyItems, "week"),
+        aiTestCases: aiCountsByRange.week,
+      },
+      month: {
+        ...buildRangeAnalytics(historyItems, "month"),
+        aiTestCases: aiCountsByRange.month,
+      },
+      quarter: {
+        ...buildRangeAnalytics(historyItems, "quarter"),
+        aiTestCases: aiCountsByRange.quarter,
+      },
+      year: {
+        ...buildRangeAnalytics(historyItems, "year"),
+        aiTestCases: aiCountsByRange.year,
+      },
+      all: {
+        ...buildRangeAnalytics(historyItems, "all"),
+        aiTestCases: aiCountsByRange.all,
+      },
     },
     repositories,
     commentSummary: {

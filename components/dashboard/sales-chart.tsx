@@ -7,6 +7,7 @@ import {
   BarElement,
   CategoryScale,
   Chart as ChartJS,
+  Filler,
   LineElement,
   Legend,
   LinearScale,
@@ -40,6 +41,7 @@ ChartJS.register(
   ArcElement,
   PointElement,
   LineElement,
+  Filler,
   Title,
   Tooltip,
   Legend,
@@ -76,6 +78,7 @@ const emptyAnalyticsByRange: Record<RangeKey, RangeAnalytics> = {
     trendLabels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     prsReviewed: [0, 0, 0, 0, 0, 0, 0],
     commentThreads: [0, 0, 0, 0, 0, 0, 0],
+    aiTestCases: 0,
   },
   month: {
     themes: [0, 0, 0, 0, 0, 0],
@@ -83,6 +86,7 @@ const emptyAnalyticsByRange: Record<RangeKey, RangeAnalytics> = {
     trendLabels: ["W1", "W2", "W3", "W4", "W5"],
     prsReviewed: [0, 0, 0, 0, 0],
     commentThreads: [0, 0, 0, 0, 0],
+    aiTestCases: 0,
   },
   quarter: {
     themes: [0, 0, 0, 0, 0, 0],
@@ -90,6 +94,7 @@ const emptyAnalyticsByRange: Record<RangeKey, RangeAnalytics> = {
     trendLabels: ["M1", "M2", "M3"],
     prsReviewed: [0, 0, 0],
     commentThreads: [0, 0, 0],
+    aiTestCases: 0,
   },
   year: {
     themes: [0, 0, 0, 0, 0, 0],
@@ -97,6 +102,7 @@ const emptyAnalyticsByRange: Record<RangeKey, RangeAnalytics> = {
     trendLabels: ["Q1", "Q2", "Q3", "Q4"],
     prsReviewed: [0, 0, 0, 0],
     commentThreads: [0, 0, 0, 0],
+    aiTestCases: 0,
   },
   all: {
     themes: [0, 0, 0, 0, 0, 0],
@@ -104,6 +110,7 @@ const emptyAnalyticsByRange: Record<RangeKey, RangeAnalytics> = {
     trendLabels: ["Y-4", "Y-3", "Y-2", "Y-1", "Y"],
     prsReviewed: [0, 0, 0, 0, 0],
     commentThreads: [0, 0, 0, 0, 0],
+    aiTestCases: 0,
   },
 };
 

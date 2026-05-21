@@ -28,13 +28,11 @@ async function AnalyticsContent() {
   const analytics = state.status === "ok" ? state.analytics : null;
   const themes = analytics?.analyticsByRange.month.themes ?? [];
   const comments = analytics?.analyticsByRange.month.comments ?? [];
-  const prs = analytics?.analyticsByRange.month.prsReviewed ?? [];
   const aiTestCases = analytics?.analyticsByRange.month.aiTestCases ?? 0;
   const clickUpSyncs = analytics?.syncedClickUpTasks ?? 0;
 
   const topThemeIndex = themes.length > 0 ? themes.indexOf(Math.max(...themes)) : -1;
   const topCommentIndex = comments.length > 0 ? comments.indexOf(Math.max(...comments)) : -1;
-  const peakThroughput = prs.length > 0 ? prs.indexOf(Math.max(...prs)) + 1 : 0;
 
   const themeLabels = [
     "Bug fix",
