@@ -78,6 +78,7 @@ const emptyAnalyticsByRange: Record<RangeKey, RangeAnalytics> = {
     trendLabels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     prsReviewed: [0, 0, 0, 0, 0, 0, 0],
     commentThreads: [0, 0, 0, 0, 0, 0, 0],
+    duplicateComments: 0,
     aiTestCases: 0,
   },
   month: {
@@ -86,6 +87,7 @@ const emptyAnalyticsByRange: Record<RangeKey, RangeAnalytics> = {
     trendLabels: ["W1", "W2", "W3", "W4", "W5"],
     prsReviewed: [0, 0, 0, 0, 0],
     commentThreads: [0, 0, 0, 0, 0],
+    duplicateComments: 0,
     aiTestCases: 0,
   },
   quarter: {
@@ -94,6 +96,7 @@ const emptyAnalyticsByRange: Record<RangeKey, RangeAnalytics> = {
     trendLabels: ["M1", "M2", "M3"],
     prsReviewed: [0, 0, 0],
     commentThreads: [0, 0, 0],
+    duplicateComments: 0,
     aiTestCases: 0,
   },
   year: {
@@ -102,6 +105,7 @@ const emptyAnalyticsByRange: Record<RangeKey, RangeAnalytics> = {
     trendLabels: ["Q1", "Q2", "Q3", "Q4"],
     prsReviewed: [0, 0, 0, 0],
     commentThreads: [0, 0, 0, 0],
+    duplicateComments: 0,
     aiTestCases: 0,
   },
   all: {
@@ -110,6 +114,7 @@ const emptyAnalyticsByRange: Record<RangeKey, RangeAnalytics> = {
     trendLabels: ["Y-4", "Y-3", "Y-2", "Y-1", "Y"],
     prsReviewed: [0, 0, 0, 0, 0],
     commentThreads: [0, 0, 0, 0, 0],
+    duplicateComments: 0,
     aiTestCases: 0,
   },
 };
@@ -152,9 +157,6 @@ const barOptions = (range: RangeKey): ChartOptions<"bar"> => ({
     },
     y: {
       beginAtZero: true,
-      labels: {
-        color: sharedTextColor,
-      },
       ticks: {
         color: sharedTextColor,
       },

@@ -45,6 +45,7 @@ export type RangeAnalytics = {
   trendLabels: string[];
   prsReviewed: number[];
   commentThreads: number[];
+  duplicateComments: number;
   aiTestCases: number;
 };
 
@@ -305,6 +306,7 @@ function buildRangeAnalytics(items: IssueSearchItem[], range: RangeKey): RangeAn
     trendLabels,
     prsReviewed,
     commentThreads,
+    duplicateComments: filtered.length,
     aiTestCases: 0,
   };
 }
