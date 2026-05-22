@@ -20,7 +20,7 @@ export default function RepositoriesContentClient({ repositories, activityBreakd
   activityBreakdown: GitHubAnalyticsPayload["activityBreakdown"] | null;
   clickUpSummary: GitHubAnalyticsPayload["clickUpSummary"] | null;
   dataStatus: string;
-  dataMessage: string;
+  dataMessage: string | null;
 }) {
   const [syncStatus, setSyncStatus] = useState<string | null>(null);
   const [lastTaskId, setLastTaskId] = useState<string | null>(null);
@@ -138,7 +138,9 @@ export default function RepositoriesContentClient({ repositories, activityBreakd
         </div>
       ) : null}
 
-      {dataStatus !== "ok" ? <DataFetchStatus message={dataMessage} /> : null}
+      {dataStatus !== "ok" ? (
+        <DataFetchStatus message={dataMessage ?? "Unable to fetch dashboard data."} />
+      ) : null}
 
       {activityBreakdown ? (
         <div className="grid gap-4 md:grid-cols-2">
